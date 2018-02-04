@@ -12,10 +12,22 @@
     "fs",
     "filesystem"
   ],
-  "author": "Todor Angelov",
+  "author": {
+    "name": "Todor Angelov",
+    "email": "abv@tondy.com",
+    "url": "http://tondy.com"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tondy67/abv-vfs.git"
+  },
   "dependencies": {
     "abv-ts": "0.0.2",
     "abv-wallet": "0.0.2"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/tondy67/abv-vfs/issues"
+  },
+  "homepage": "https://github.com/tondy67/abv-vfs#readme"
 }
