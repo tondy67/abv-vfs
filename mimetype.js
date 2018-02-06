@@ -76,8 +76,11 @@ const mimetype = (path, body='') => {
 	
 	const buf = Buffer.from(body);
 	let bin;
-	if (ts.isBrowser) bin = [...buf].toString().includes('0,0,0,');
-	else bin = buf.includes('000','hex');
+	try{
+		bin = Buffer.from(v).includes('000','hex');
+	}catch(e){
+		bin = [...buf].toString().includes('0,0,0,');
+	}
 
 	if (r !== ''){
 		if ($txt.includes(ext)){
