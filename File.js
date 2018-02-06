@@ -30,11 +30,14 @@ class File
 		
 		const buf = Buffer.from(v);
 
-		if (ts.isBrowser){
+		try{
+			this.bin = Buffer.from(v).includes('000','hex');
+		}catch(e){
 			this.bin = [...buf].toString().includes('0,0,0,');
+		}
+		if (ts.isBrowser){
 			this._type = mimetype(this._name); 
 		}else{
-			this.bin = Buffer.from(v).includes('000','hex');
 			this._type = mimetype(this._name, v);
 		}
 		this._body = this.bin ? v : v.toString();
