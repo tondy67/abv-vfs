@@ -4,6 +4,7 @@
 "use strict";
 
 const ts = require('abv-ts')('abv:vfs.FS');
+const pjson = require('./package.json');
 const MFS = require('./lib/MFS.js');
 const fs = ts.isBrowser ? new MFS('nfs') : require('fs');
 const TStream = require('./lib/TStream.js');
@@ -24,17 +25,18 @@ class FS
 	{
 		this.mount(fs);
 		this.fs = fs;
+		this.name = 'afs';
 	}
 
 // namespace	
 	get ns() { return $ns; }
 
-	set ns(n) 
+	set ns(name) 
 	{ 
 		let r = false;
-		if ($root.has(n)){
-			$ns = n;
-			this.fs = $root.get(n);
+		if ($root.has(name)){
+			$ns = name;
+			this.fs = $root.get(name);
 			r = true;
 		}
 		return r; 
@@ -81,6 +83,43 @@ class FS
 	readdirSync(path)
 	{
 		return this.fs.readdirSync(path);
+	}
+
+	rebuildAbv(path)
+	{
+		const files = [];
+		let file;
+		const d = this.readdirAbv(path);
+		for (let f of d){
+			file = this.readFileAbv(path +'/' + f);
+			if (file !== null){
+				if (Number.isInteger(file.id)) files[file.id] = file;
+				else files.push(file);
+			}
+		}
+		const afs = {name: this.name, version: pjson.version, files: files};
+		const s = 'const meta = `\n' + JSON.stringify(afs,null,2) + '\n`;';
+		this.writeFileSync(path + '/' + this.name + '.js', s, 'utf8');
+		return afs;
+	}
+	
+	readdirAbv(path)
+	{
+		const d = this.fs.readdirSync(path);
+		const r = [];
+		let stat;
+		for (let f of d){
+			stat = fs.lstatSync(path + '/' + f); 
+			if (stat.isDirectory()) r.push(f);
+		}
+		return r;
+	}
+	
+	readFileAbv(path) 
+	{ 
+		let r = null;
+		try{ r = JSON.parse(require(path +'/meta.js')); }catch(e){}
+		return r; 
 	}
 	
 	readFileSync(path, opt) 
