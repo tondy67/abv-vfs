@@ -1,6 +1,6 @@
 {
   "name": "abv-vfs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Abvos virtual file system",
   "main": "index.js",
   "scripts": {
@@ -23,8 +23,9 @@
     "url": "git+https://github.com/tondy67/abv-vfs.git"
   },
   "dependencies": {
-    "abv-ts": "0.0.2",
-    "abv-wallet": "0.0.2"
+    "abv-events": "0.0.2",
+    "abv-ts": "0.0.3",
+    "abv-wallet": "0.0.3"
   },
   "bugs": {
     "url": "https://github.com/tondy67/abv-vfs/issues"

@@ -12,20 +12,23 @@ const RStream = require('./lib/RStream.js');
 const WStream = require('./lib/WStream.js');
 const mime = require('./mimetype.js');
 const File = require('./File.js');
+const Wallet = require('abv-wallet');
 const ips = ts.isBrowser ? [] : require('./lib/IPs.js');
 
 const $root = new Map();
 
 // namespace
 let $ns = 'nfs';
+const $max_file_size = 4194304; // 4 MB
 
 class FS
 {
-	constructor() 
+	constructor()
 	{
 		this.mount(fs);
 		this.fs = fs;
 		this.name = 'afs';
+		this._cache = {m: null, max: 0, timeout: 0};
 	}
 
 // namespace	
@@ -33,13 +36,9 @@ class FS
 
 	set ns(name) 
 	{ 
-		let r = false;
-		if ($root.has(name)){
-			$ns = name;
-			this.fs = $root.get(name);
-			r = true;
-		}
-		return r; 
+		if (!$root.has(name)) throw new Error('fs? ' + name);
+		$ns = name;
+		this.fs = $root.get(name);
 	}
 	
 	mimetype(path, body)
@@ -58,11 +57,6 @@ class FS
 	{
 		if (!name) return;
 		$root.delete(name);
-	}
-	
-	existsSync(path) 
-	{ 
-		return this.fs.existsSync(path); 
 	}
 	
 	realpathSync(path)
@@ -93,7 +87,8 @@ class FS
 		for (let f of d){
 			file = this.readFileAbv(path +'/' + f);
 			if (file !== null){
-				if (Number.isInteger(file.id)) files[file.id] = file;
+				if (!file.sort){
+				}else if (Number.isInteger(file.sort)) files[file.sort] = file;
 				else files.push(file);
 			}
 		}
@@ -118,13 +113,51 @@ class FS
 	readFileAbv(path) 
 	{ 
 		let r = null;
-		try{ r = JSON.parse(require(path +'/meta.js')); }catch(e){}
+		try{ 
+			const m = JSON.parse(require(path +'/meta.js')); 
+			r = new File(m.name);
+			r.desc = m.desc;
+			r.tags = m.tags;
+			r.logo = {name: m.logo};
+	// FIXME: rest props
+			r.price = m.price; 
+			r.sort = m.sort; 
+		}catch(e){}
 		return r; 
 	}
 	
-	readFileSync(path, opt) 
+	cache(max=32, timeout=60000) // 32 MB, 60 sec.
+	{
+		if (!this._cache.m){
+			this._cache.m = new Wallet(this.name, max, timeout);
+			this._cache.max = max;
+			this._cache.timeout = timeout;
+		}
+	}
+	
+	stat() 
 	{ 
-		return this.fs.readFileSync(path, opt); 
+		return Wallet.i(this.name); 
+	}
+	
+	existsSync(path) 
+	{ 
+		return this.fs.existsSync(path); 
+	}
+	
+	readFileSync(path, opt, timeout=0) 
+	{ 
+		let f = null;
+		if (this._cache.m){
+			f = this._cache.m.get(path);
+			if (f) return f.file;
+		}
+		const stat = fs.lstatSync(path); 
+		f = this.fs.readFileSync(path, opt);
+		if (f && (stat.size < $max_file_size) && (timeout > 0)){
+			this._cache.m.set(path, {file: f, size: stat.size}, timeout);
+		}		
+		return f; 
 	}
 	
 	writeFileSync(path, data, opt) 
@@ -158,6 +191,18 @@ class FS
 	}
 
 	IPs() { return ips; }
+	
+	get MAX_FILE_SIZE(){ return $max_file_size; } 
+
+	Wallet(name, max=32, timeout=60000)
+	{
+		return new Wallet(name, max, timeout);
+	}
+	
+	MFS(name='mfs')
+	{
+		return new MFS(name);
+	}
 	
 }
 

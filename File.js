@@ -9,6 +9,11 @@ class File
 	constructor(name='', body='')
 	{
 		this._name = name;
+		this.title = '';
+		this.desc = '';
+		this.logo = null;
+		this.sort = 0;
+		this.tags = [];
 		this._size = 0;
 		this._type = '';
 		this._time = ts.now;
@@ -65,6 +70,24 @@ class File
 		return this._body;
 	}
 
+	export()
+	{
+		const meta = {
+			name: this.name,
+			title: this.title,
+			desc: this.desc,
+			sort: this.sort,
+			tags: this.tags,
+			size: this.size,
+			type: this.type,
+			time: this.time
+		};
+		if (this.logo) meta.logo = this.logo.name;
+		const r = {meta: JSON.stringify(meta, null, 2), body: body};
+		if (this.logo) r.logo = this.logo.body;
+		return r;
+	}
+	
 	get webkitRelativePath() { return ''; }
 
 	get lastModified() { return this.time; }
