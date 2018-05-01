@@ -12,7 +12,7 @@ const RStream = require('./lib/RStream.js');
 const WStream = require('./lib/WStream.js');
 const mime = require('./mimetype.js');
 const File = require('./File.js');
-const Wallet = require('abv-wallet');
+const { Wallet } = require('abv-core');
 const ips = ts.isBrowser ? [] : require('./lib/IPs.js');
 
 const $root = new Map();
@@ -79,53 +79,6 @@ class FS
 		return this.fs.readdirSync(path);
 	}
 
-	rebuildAbv(path)
-	{
-		const files = [];
-		let file;
-		const d = this.readdirAbv(path);
-		for (let f of d){
-			file = this.readFileAbv(path +'/' + f);
-			if (file !== null){
-				if (!file.sort){
-				}else if (Number.isInteger(file.sort)) files[file.sort] = file;
-				else files.push(file);
-			}
-		}
-		const afs = {name: this.name, version: pjson.version, files: files};
-		const s = 'const meta = `\n' + JSON.stringify(afs,null,2) + '\n`;';
-		this.writeFileSync(path + '/' + this.name + '.js', s, 'utf8');
-		return afs;
-	}
-	
-	readdirAbv(path)
-	{
-		const d = this.fs.readdirSync(path);
-		const r = [];
-		let stat;
-		for (let f of d){
-			stat = fs.lstatSync(path + '/' + f); 
-			if (stat.isDirectory()) r.push(f);
-		}
-		return r;
-	}
-	
-	readFileAbv(path) 
-	{ 
-		let r = null;
-		try{ 
-			const m = JSON.parse(require(path +'/meta.js')); 
-			r = new File(m.name);
-			r.desc = m.desc;
-			r.tags = m.tags;
-			r.logo = {name: m.logo};
-	// FIXME: rest props
-			r.price = m.price; 
-			r.sort = m.sort; 
-		}catch(e){}
-		return r; 
-	}
-	
 	cache(max=32, timeout=60000) // 32 MB, 60 sec.
 	{
 		if (!this._cache.m){
@@ -190,6 +143,53 @@ class FS
 		return new RStream(owner, body, opt);
 	}
 
+	rebuildAbv(path)
+	{
+		const files = [];
+		let file;
+		const d = this.readdirAbv(path);
+		for (let f of d){
+			file = this.readFileAbv(path +'/' + f);
+			if (file !== null){
+				if (!file.sort){
+				}else if (Number.isInteger(file.sort)) files[file.sort] = file;
+				else files.push(file);
+			}
+		}
+		const afs = {name: this.name, version: pjson.version, files: files};
+		const s = 'const meta = `\n' + JSON.stringify(afs,null,2) + '\n`;';
+		this.writeFileSync(path + '/' + this.name + '.js', s, 'utf8');
+		return afs;
+	}
+	
+	readdirAbv(path)
+	{
+		const d = this.fs.readdirSync(path);
+		const r = [];
+		let stat;
+		for (let f of d){
+			stat = fs.lstatSync(path + '/' + f); 
+			if (stat.isDirectory()) r.push(f);
+		}
+		return r;
+	}
+	
+	readFileAbv(path) 
+	{ 
+		let r = null;
+		try{ 
+			const m = JSON.parse(require(path +'/meta.js')); 
+			r = new File(m.name);
+			r.desc = m.desc;
+			r.tags = m.tags;
+			r.logo = {name: m.logo};
+	// FIXME: rest props
+			r.price = m.price; 
+			r.sort = m.sort; 
+		}catch(e){}
+		return r; 
+	}
+	
 	IPs() { return ips; }
 	
 	get MAX_FILE_SIZE(){ return $max_file_size; } 
@@ -202,6 +202,11 @@ class FS
 	MFS(name='mfs')
 	{
 		return new MFS(name);
+	}
+
+	File(name='', body='')
+	{
+		return new File(name, body);
 	}
 	
 }

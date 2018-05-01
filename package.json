@@ -1,10 +1,10 @@
 {
   "name": "abv-vfs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Abvos virtual file system",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/*.js"
   },
   "keywords": [
     "abv",
@@ -24,11 +24,14 @@
   },
   "dependencies": {
     "abv-events": "0.0.2",
-    "abv-ts": "0.0.3",
-    "abv-wallet": "0.0.3"
+    "abv-ts": "0.0.4",
+    "abv-core": "0.0.4"
   },
   "bugs": {
     "url": "https://github.com/tondy67/abv-vfs/issues"
   },
-  "homepage": "https://github.com/tondy67/abv-vfs#readme"
+  "homepage": "https://github.com/tondy67/abv-vfs#readme",
+  "devDependencies": {
+    "mocha": "^5.1.1"
+  }
 }
