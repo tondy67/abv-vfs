@@ -6,13 +6,14 @@
 const ts = require('abv-ts')('abv:vfs.FS');
 const pjson = require('./package.json');
 const MFS = require('./lib/MFS.js');
-const fs = ts.isBrowser ? new MFS('nfs') : require('fs');
+const LSFS = require('./lib/LSFS.js');
+const fs = ts.isBrowser ? new LSFS('nfs') : require('fs');
 const TStream = require('./lib/TStream.js');
 const RStream = require('./lib/RStream.js');
 const WStream = require('./lib/WStream.js');
 const mime = require('./mimetype.js');
 const File = require('./File.js');
-const { Wallet } = require('abv-core');
+const { Wallet, Crypto, Pack, XmlParser, Zip } = require('abv-core');
 const ips = ts.isBrowser ? [] : require('./lib/IPs.js');
 
 const $root = new Map();
@@ -91,6 +92,11 @@ class FS
 	stat() 
 	{ 
 		return Wallet.i(this.name); 
+	}
+	
+	unlinkSync(path)
+	{
+		fs.unlinkSync(path);
 	}
 	
 	existsSync(path) 
@@ -194,6 +200,7 @@ class FS
 	
 	get MAX_FILE_SIZE(){ return $max_file_size; } 
 
+// Shortcuts
 	Wallet(name, max=32, timeout=60000)
 	{
 		return new Wallet(name, max, timeout);
@@ -207,6 +214,26 @@ class FS
 	File(name='', body='')
 	{
 		return new File(name, body);
+	}
+	
+	Crypto(curve='secp256k1')
+	{
+		return new Crypto(curve);
+	}
+
+	Pack(limit=2097152)
+	{
+		return new Pack(limit);
+	}
+
+	XmlParser()
+	{
+		return new XmlParser();
+	}
+
+	Zip()
+	{
+		return new Zip();
 	}
 	
 }

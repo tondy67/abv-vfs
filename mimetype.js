@@ -67,21 +67,26 @@ mime.set('post-url','application/x-www-form-urlencoded');
 mime.set('post-dat','multipart/form-data');
 mime.set('post-mix','multipart/mixed');
 
-const mimetype = (path, body='') => {
+const mimetype = (path, body=null) => {
 	let r = '';
 	const ext = Path.extname(path).substr(1).toLowerCase();
 	if (mime.has(ext)) r = mime.get(ext);	
 
-	if (!body || (body === '')) return r;
+	if (!body) return r;
 	
-	const buf = Buffer.from(body);
+	// dirty hack, not 100% !!!
 	let bin;
-	try{
-		bin = Buffer.from(v).includes('000','hex');
-	}catch(e){
-		bin = [...buf].toString().includes('0,0,0,');
+	if (ts.is(body, String)){
+		bin = false;
+	}else{
+		const buf = Buffer.from(body);
+		try{
+			bin = buf.includes('000','hex');
+		}catch(e){
+			bin = [...buf].toString().includes('0,0,0,');
+		}
 	}
-
+	
 	if (r !== ''){
 		if ($txt.includes(ext)){
 			if (bin) r = mime.get('bin');
@@ -91,8 +96,7 @@ const mimetype = (path, body='') => {
 	}else if (bin){
 		r = mime.get('bin');
 	}else{
-		if (body && body.includes('</html>','utf8')) r = mime.get('htm');
-		else r = mime.get('txt');
+		r = body.includes('</html>','utf8')? mime.get('htm'):mime.get('txt');
 	}
 	if (!bin) r += '; charset=utf-8';
 	return r;
